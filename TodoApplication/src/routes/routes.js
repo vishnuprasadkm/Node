@@ -1,9 +1,12 @@
-import adminRoute from "./routes/admin"
-import authRoute from "./routes/auth"
-import userRoute from "./routes/user"
-import todoRoute from "./routes/todo"
+import express from "express";
+import authRoute from "./auth.js"
+import userRoute from "./user.js";
+import todoRoute from "./todo.js";
 
-app.use("/auth", authRoute)
-app.use("/admin", adminRoute)
-app.use("/user", userRoute)
-app.use("/todo", todoRoute)
+const router = express.Router();
+
+router.use("/", authRoute)
+router.use("/user", userRoute);
+router.use("/todo", todoRoute);
+
+export default router;
