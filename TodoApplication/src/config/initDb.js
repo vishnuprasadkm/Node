@@ -4,13 +4,14 @@ import pool from "./dbConfig.js";
 export default async function createDataBase() {
   try {
     // Check for Users table if not create one
+    // bcrypt creates upto 60 characters for hashed text
     await pool.query(`CREATE TABLE IF NOT EXISTS users(
             id SERIAL PRIMARY KEY,
             user_name VARCHAR(20) UNIQUE NOT NULL,
             email VARCHAR(50) NOT NULL,
             first_name VARCHAR(100) NOT NULL,
             last_name VARCHAR(100) NOT NULL,
-            password VARCHAR(50) NOT NULL,
+            password VARCHAR(60) NOT NULL,
             active BOOLEAN DEFAULT true,
             role VARCHAR(20) DEFAULT 'user'
             );`);

@@ -34,7 +34,15 @@ app.get("/", async (_, res) => {
 });
 
 app.use("/api", router);
+
 // Error handling
+app.use((req, res, next) =>
+  res.status(404).json({
+    status: 404,
+    message: "Endpoint not found",
+    path: req.originalUrl,
+  }),
+);
 
 // Server
 app.listen(PORT, () => {

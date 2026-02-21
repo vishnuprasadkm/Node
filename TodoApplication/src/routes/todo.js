@@ -6,14 +6,21 @@ import {
   getTodoById,
   updateTodo,
 } from "../controller/todoController.js";
-import authenticateToken from "../middlewares/authMiddleware.js"
+import authenticateToken from "../middlewares/authMiddleware.js";
+import validateMiddleware from "../middlewares/validateMiddleware.js";
+import { todoSchema, updateTodoSchema } from "../schema/todoSchema.js";
 
 const router = express.Router();
 
-router.post("/",authenticateToken, createTodo);
+router.post("/", authenticateToken, validateMiddleware(todoSchema), createTodo);
 router.get("/", authenticateToken, getAllTodos);
 router.get("/:id", authenticateToken, getTodoById);
-router.put("/:id", authenticateToken, updateTodo);
+router.put(
+  "/:id",
+  authenticateToken,
+  validateMiddleware(updateTodoSchema),
+  updateTodo,
+);
 router.delete("/:id", authenticateToken, deleteTodo);
 
 export default router;

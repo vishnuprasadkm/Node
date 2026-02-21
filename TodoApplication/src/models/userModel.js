@@ -15,7 +15,9 @@ export async function getUserDetailService(id) {
 }
 
 export async function createUserService(user) {
-  const hashedPassword = user.password ? bcrypt.hash(user.password, 10) : null;
+  const hashedPassword = user.password
+    ? await bcrypt.hash(user.password, 10)
+    : null;
   const values = [
     normalizeToNull(user.userName),
     normalizeToNull(user.email),
@@ -23,7 +25,7 @@ export async function createUserService(user) {
     normalizeToNull(user.lastName),
     hashedPassword,
     true,
-    user.role == null ? "user" : user.role,
+    user.role.toLowerCase() === "admin" ? "admin" : "user",
   ];
   const response = await pool.query(
     "INSERT INTO users(user_name, email, first_name, last_name, password, active, role) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *",
@@ -33,7 +35,9 @@ export async function createUserService(user) {
 }
 
 export async function updateUserService(user, id) {
-  const hashedPassword = user.password ? bcrypt.hash(user.password, 10) : null;
+  const hashedPassword = user.password
+    ? await bcrypt.hash(user.password, 10)
+    : null;
   const values = [
     normalizeToNull(user.userName),
     normalizeToNull(user.email),
@@ -41,7 +45,6 @@ export async function updateUserService(user, id) {
     normalizeToNull(user.lastName),
     hashedPassword,
     true,
-    normalizeToNull(user.role),
     id,
   ];
   const response = await pool.query(
@@ -52,9 +55,8 @@ export async function updateUserService(user, id) {
         first_name=COALESCE($3, first_name), 
         last_name=COALESCE($4, last_name), 
         password=COALESCE($5, password), 
-        active=COALESCE($6, active), 
-        role=COALESCE($7, role)
-    WHERE id=$8
+        active=COALESCE($6, active)
+    WHERE id=$7
     RETURNING *`,
     values,
   );

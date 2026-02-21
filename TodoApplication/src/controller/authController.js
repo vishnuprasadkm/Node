@@ -5,10 +5,10 @@ import pool from "../config/dbConfig.js";
 
 export const login = async (req, res, next) => {
   try {
-    let userName = req.body.user_name;
+    let userName = req.body.userName;
     let password = req.body.password;
 
-    let user = await pool.query("SELECT FROM users WHERE user_name=$1", [
+    let user = await pool.query("SELECT * FROM users WHERE user_name=$1", [
       userName,
     ]);
 
@@ -20,7 +20,7 @@ export const login = async (req, res, next) => {
     }
 
     user = user.rows[0];
-    const validPass = bcrypt.compare(password, user.password);
+    const validPass = user.password ? bcrypt.compare(password, user.password) : false;
 
     if (!validPass) {
       return res.send(401).json({
@@ -31,7 +31,7 @@ export const login = async (req, res, next) => {
 
     // JWT sign
     const token = jwt.sign(
-      { id: user.user_id, role: user.role, userName: user.user_name },
+      { id: user.id, role: user.role, userName: user.user_name },
       process.env.JWT_SECRET_KEY,
       { expiresIn: "2hr" },
     );

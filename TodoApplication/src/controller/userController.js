@@ -31,7 +31,16 @@ const createUser = async (req, res, next) => {
 };
 const getUser = async (req, res, next) => {
   try {
-    const user = await getAllUsersService();
+    const user =
+      req.user.role !== "admin"
+        ? await getUserDetailService(req.user.id)
+        : await getAllUsersService();
+
+    if (user.size == 0) {
+      return req.user.role !== "admin"
+        ? handleUserResponse(res, 403, "Access Denied!")
+        : handleUserResponse(res, 404, "User not found!");
+    }
     handleUserResponse(
       res,
       200,
@@ -43,10 +52,20 @@ const getUser = async (req, res, next) => {
     next(error);
   }
 };
+
 const getUserById = async (req, res, next) => {
   try {
-    const user = await getUserDetailService(req.params.id);
-    console.log(user);
+    if (req.user.role !== "admin" && +req.params.id !== +req.user.id) {
+      return handleUserResponse(
+        res,
+        403,
+        "Forbidden: User access not allowed!",
+      );
+    }
+    const user =
+      req.user.role === "admin"
+        ? await getUserDetailService(req.params.id)
+        : await getUserDetailService(req.user.id);
     if (user.size == 0) {
       return handleUserResponse(res, 404, "User not found!");
     }
@@ -63,7 +82,21 @@ const getUserById = async (req, res, next) => {
 };
 const updateUser = async (req, res, next) => {
   try {
-    const user = await updateUserService(req.body, req.params.id);
+    let user = {};
+    if (req.user.role === "admin") {
+      if (req.params.id) {
+        user = await updateUserService(req.body, req.params.id);
+      } else user = await updateUserService(req.body, req.user.id);
+    } else {
+      if (+req.params.id === +req.user.id) {
+        user = await updateUserService(req.body, req.user.id);
+      } else
+        return handleUserResponse(
+          res,
+          403,
+          "Forbidden: User action not allowed!",
+        );
+    }
     if (user.size == 0) {
       return handleUserResponse(res, 404, "User not found!");
     }
@@ -80,7 +113,17 @@ const updateUser = async (req, res, next) => {
 };
 const deleteUser = async (req, res, next) => {
   try {
-    const user = await deleteUserService(req.body, req.params.id);
+    if (req.user.role !== "admin") {
+      const user = await deleteUserService(req.user.id);
+      return handleUserResponse(
+        res,
+        200,
+        "User deleted successfully!",
+        user.size,
+        user.data,
+      );
+    }
+    const user = await deleteUserService(req.params.id);
     if (user.size == 0) {
       return handleUserResponse(res, 404, "User not found!");
     }
@@ -96,4 +139,11 @@ const deleteUser = async (req, res, next) => {
   }
 };
 
-export { handleUserResponse, createUser, getUser, getUserById, updateUser, deleteUser };
+export {
+  handleUserResponse,
+  createUser,
+  getUser,
+  getUserById,
+  updateUser,
+  deleteUser,
+};

@@ -17,13 +17,13 @@ export async function getTodoService(id) {
   return { data: response.rows[0], size: response.rowCount };
 }
 
-export async function createTodoService(todo) {
+export async function createTodoService(todo, user) {
   const values = [
     todo.title,
     todo.description,
     todo.priority,
     todo.complete,
-    todo.userId,
+    user.id,
   ];
   const response = await pool.query(
     "INSERT INTO todos(title, description, priority, complete, user_id) VALUES($1,$2,$3,$4,$5) RETURNING *",
